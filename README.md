@@ -1,31 +1,50 @@
-### 3 分钟了解如何进入开发
+[中文介绍](http://wereadteam.github.io/2016/07/20/MLeaksFinder2/) | [FAQ中文](https://github.com/Zepo/MLeaksFinder/blob/master/FAQ-CN.md)
 
-欢迎使用云效 Codeup，通过阅读以下内容，你可以快速熟悉 Codeup ，并立即开始今天的工作。
+# MLeaksFinder
+MLeaksFinder helps you find memory leaks in your iOS apps at develop time. It can automatically find leaks in UIView and UIViewController objects, present an alert with the leaked object in its View-ViewController stack when leaks happening. ~~More over, it can try to find a retain cycle for the leaked object using [FBRetainCycleDetector](https://github.com/facebook/FBRetainCycleDetector/tree/master/FBRetainCycleDetector).~~ Besides finding leaks in UIView and UIViewController objects, developers can extend it to find leaks in other kinds of objects.
 
-### 提交**文件**
+# Communication
+QQ group: 482121244
 
-首先，你需要了解在 Codeup 中如何提交代码文件，跟着文档「[__提交第一行代码__](https://help.aliyun.com/document_detail/153708.html)」一起操作试试看吧。
+# Installation
+```
+pod 'MLeaksFinder'
+```
+MLeaksFinder comes into effect after `pod install`, there is no need to add any code nor to import any header file.
 
-### 开启代码检测
+*WARNING: FBRetainCycleDetector is removed from the podspec due to Facebook's BSD-plus-Patents license. If you want to use FBRetainCycleDetector to find retain cycle, add `pod 'FBRetainCycleDetector'` to your project's Podfile and turn the macro `MEMORY_LEAKS_FINDER_RETAIN_CYCLE_ENABLED` on in `MLeaksFinder.h`.*
 
-开发过程中，为了更好的管理你的代码资产，Codeup 内置了「[__代码检测服务__](https://help.aliyun.com/document_detail/434321.html)，可设置提交或合并请求的变更自动触发扫描，并及时提供结果反馈。
-![](https://img.alicdn.com/tfs/TB1nRDatoz1gK0jSZLeXXb9kVXa-1122-380.png "")
-![](https://img.alicdn.com/tfs/TB1PrPatXY7gK0jSZKzXXaikpXa-1122-709.png "")
-### 发起代码评审
+# Usage
+MLeaksFinder can automatically find leaks in UIView and UIViewController objects. When leaks happening, it will present an alert with the leaked object in its View-ViewController stack.
+```
+Memory Leak
+(
+    MyTableViewController,
+    UITableView,
+    UITableViewWrapperView,
+    MyTableViewCell
+)
+```
 
-功能开发完毕后，通常你需要发起「[__代码合并和评审__](https://help.aliyun.com/document_detail/153872.html)」，Codeup 支持多人协作的代码评审服务，你可以通过「[__保护分支__](https://help.aliyun.com/document_detail/153873.html)」策略及「[__合并请求设置__](https://help.aliyun.com/document_detail/153874.html)」对合并过程进行流程化管控，同时提供 WebIDE 在线代码评审及冲突解决能力，让你的评审过程更加流畅。
+For the above example, we are sure that objects of `MyTableViewController`, `UITableView`, `UITableViewWrapperView` are deallocated successfully, but not the objects of `MyTableViewCell`.
 
-![](https://img.alicdn.com/tfs/TB1XHrctkP2gK0jSZPxXXacQpXa-1432-887.png "")
+## Mute Assertion
+If your class is designed as singleton or for some reason objects of your class should not be dealloced, override `- (BOOL)willDealloc` in your class by returning NO.
+```objc
+- (BOOL)willDealloc {
+    return NO;
+}
+```
 
-![](https://img.alicdn.com/tfs/TB1V3fctoY1gK0jSZFMXXaWcVXa-1432-600.png "")
-
-### 查看代码贡献
-代码库提供了图形化报表帮助企业查看团队的代码提交和代码行贡献情况，此外还支持查看提交评审率、千行代码评论数等指标以衡量成员的代码评审活动参与度。
-
-### 成员协作
-
-是时候邀请成员一起编写卓越的代码工程了，请点击右上角「成员」邀请你的小伙伴开始协作吧！
-
-### 更多
-
-Git 使用教学、高级功能指引等更多说明，参见[__Codeup帮助文档__](https://help.aliyun.com/document_detail/153784.html)。
+## Find Leaks in Other Objects
+MLeaksFinder finds leaks in UIView and UIViewController objects by default. However, you can extend it to find leaks in the whole object graph rooted at a UIViewController object.
+```objc
+- (BOOL)willDealloc {
+    if (![super willDealloc]) {
+        return NO;
+    }
+    
+    MLCheck(self.viewModel);
+    return YES;
+}
+```
