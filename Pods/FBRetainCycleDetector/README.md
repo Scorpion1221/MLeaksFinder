@@ -1,8 +1,9 @@
 # FBRetainCycleDetector
-[![Build Status](https://travis-ci.org/facebook/FBRetainCycleDetector.svg?branch=master)](https://travis-ci.org/facebook/FBRetainCycleDetector)
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
+[![Build Status](https://travis-ci.org/facebook/FBRetainCycleDetector.svg?branch=main)](https://travis-ci.org/facebook/FBRetainCycleDetector)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![CocoaPods](https://img.shields.io/cocoapods/v/FBRetainCycleDetector.svg?maxAge=2592000)]()
-[![License](https://img.shields.io/cocoapods/l/FBRetainCycleDetector.svg)](https://github.com/facebook/FBRetainCycledetector/blob/master/LICENSE)
+[![CocoaPods](https://img.shields.io/cocoapods/v/FBRetainCycleDetector.svg)](https://cocoapods.org/pods/FBRetainCycleDetector)
+[![License](https://img.shields.io/cocoapods/l/FBRetainCycleDetector.svg)](https://github.com/facebook/FBRetainCycledetector/blob/main/LICENSE)
 
 An iOS library that finds retain cycles using runtime analysis.
 
@@ -15,11 +16,11 @@ The features of this project were influenced by [Circle](https://github.com/mike
 
 ### Carthage
 
-To your Cartfile add: 
+To your Cartfile add:
 
     github "facebook/FBRetainCycleDetector"
 
-`FBRetainCycleDetector` is built out from non-debug builds, so when you want to test it, use 
+`FBRetainCycleDetector` is built out from non-debug builds, so when you want to test it, use
 
     carthage update --configuration Debug
 
@@ -29,7 +30,7 @@ To your podspec add:
 
     pod 'FBRetainCycleDetector'
 
-You'll be able to use `FBRetainCycleDetector` fully only in `Debug` builds. This is controlled by [compilation flag](https://github.com/facebook/FBRetainCycleDetector/blob/master/FBRetainCycleDetector/Detector/FBRetainCycleDetector.h#L83) that can be provided to the build to make it work in other configurations.
+You'll be able to use `FBRetainCycleDetector` fully only in `Debug` builds. This is controlled by [compilation flag](https://github.com/facebook/FBRetainCycleDetector/blob/main/FBRetainCycleDetector/Detector/FBRetainCycleDetector.h#L83) that can be provided to the build to make it work in other configurations.
 
 ## Example usage
 
@@ -46,7 +47,7 @@ NSSet *retainCycles = [detector findRetainCycles];
 NSLog(@"%@", retainCycles);
 ```
 
-`- (NSSet<NSArray<FBObjectiveCGraphElement *> *> *)findRetainCycles` will return a set of arrays of wrapped objects. It's pretty hard to look at at first, but let's go through it. Every array in this set will represent one retain cycle. Every element in this array is a wrapper around one object in this retain cycle. Check [FBObjectiveCGraphElement](https://github.com/facebook/FBRetainCycleDetector/blob/master/FBRetainCycleDetector/Graph/FBObjectiveCGraphElement.h).
+`- (NSSet<NSArray<FBObjectiveCGraphElement *> *> *)findRetainCycles` will return a set of arrays of wrapped objects. It's pretty hard to look at at first, but let's go through it. Every array in this set will represent one retain cycle. Every element in this array is a wrapper around one object in this retain cycle. Check [FBObjectiveCGraphElement](https://github.com/facebook/FBRetainCycleDetector/blob/main/FBRetainCycleDetector/Graph/FBObjectiveCGraphElement.h).
 
 Example output could look like this:
 ```
@@ -89,7 +90,7 @@ NSSet *retainCycles = [detector findRetainCycles];
 
 Every filter is a block that having two `FBObjectiveCGraphElement` objects can say, if their relation is valid.
 
-Check [FBStandardGraphEdgeFilters](FBRetainCycleDetector/Filters/FBStandardGraphEdgeFilters.h) to learn more about how to use filters.
+Check [FBStandardGraphEdgeFilters](FBRetainCycleDetector/Filtering/FBStandardGraphEdgeFilters.h) to learn more about how to use filters.
 
 ### NSTimer
 
@@ -129,7 +130,7 @@ If you want to profile your app, you might want to have an abstraction over how 
 `FBAllocationTracker` and `FBRetainCycleDetector` can work nicely together. We have created a small example and drop-in project called [FBMemoryProfiler](https://github.com/facebook/FBMemoryProfiler) that leverages both these projects. It offers you very basic UI that you can use to track all allocations and force retain cycle detection from UI.
 
 ## Contributing
-See the [CONTRIBUTING](CONTRIBUTING) file for how to help out.
+See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
 ## License
-[`FBRetainCycleDetector` is BSD-licensed](LICENSE). We also provide an additional [patent grant](PATENTS).
+[`FBRetainCycleDetector` is BSD-licensed](LICENSE).

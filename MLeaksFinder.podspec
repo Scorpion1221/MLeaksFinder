@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => "git@codeup.aliyun.com:633b124f0e55ca746597f185/sleep/MLeaksFinder.git", :tag => s.version }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '6.0'
+  s.ios.deployment_target = '11.0'
 
   s.source_files = 'MLeaksFinder/**/*'
   

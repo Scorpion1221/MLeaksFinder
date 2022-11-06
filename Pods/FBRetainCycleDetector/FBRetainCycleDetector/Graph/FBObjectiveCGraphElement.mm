@@ -3,20 +3,26 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import "FBObjectiveCGraphElement+Internal.h"
 
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <malloc/malloc.h>
 
 #import "FBAssociationManager.h"
 #import "FBClassStrongLayout.h"
 #import "FBObjectGraphConfiguration.h"
 #import "FBRetainCycleUtils.h"
 #import "FBRetainCycleDetector.h"
+
+@protocol FBRetainCycleDetectorCustomClassDescribable
+
+- (NSString *)customClassDescription;
+
+@end
 
 @implementation FBObjectiveCGraphElement
 
@@ -40,21 +46,27 @@
 {
   if (self = [super init]) {
 #if _INTERNAL_RCD_ENABLED
-    // We are trying to mimic how ObjectiveC does storeWeak to not fall into
-    // _objc_fatal path
-    // https://github.com/bavarious/objc4/blob/3f282b8dbc0d1e501f97e4ed547a4a99cb3ac10b/runtime/objc-weak.mm#L369
+    // For an object that is not created using malloc/realloc, running RCD on it is pointless.
+    // Hence adding a condition to check if object we are considering for RCD is malloced or not.
+    malloc_zone_t *zone = malloc_zone_from_ptr((__bridge void *)object);
+    if (zone) {
+      // We are trying to mimic how ObjectiveC does storeWeak to not fall into
+      // _objc_fatal path
+      // https://github.com/bavarious/objc4/blob/3f282b8dbc0d1e501f97e4ed547a4a99cb3ac10b/runtime/objc-weak.mm#L369
 
-    Class aCls = object_getClass(object);
-    BOOL (*allowsWeakReference)(id, SEL) =
-    (__typeof__(allowsWeakReference))class_getMethodImplementation(aCls, @selector(allowsWeakReference));
+      Class aCls = object_getClass(object);
 
-    if (allowsWeakReference && (IMP)allowsWeakReference != _objc_msgForward) {
-      if (allowsWeakReference(object, @selector(allowsWeakReference))) {
-        // This is still racey since allowsWeakReference could change it value by now.
+      BOOL (*allowsWeakReference)(id, SEL) =
+      (__typeof__(allowsWeakReference))class_getMethodImplementation(aCls, @selector(allowsWeakReference));
+
+      if (allowsWeakReference && (IMP)allowsWeakReference != _objc_msgForward) {
+        if (allowsWeakReference(object, @selector(allowsWeakReference))) {
+          // This is still racey since allowsWeakReference could change it value by now.
+          _object = object;
+        }
+      } else {
         _object = object;
       }
-    } else {
-      _object = object;
     }
 #endif
     _namePath = namePath;
@@ -70,38 +82,16 @@
   NSMutableSet *retainedObjects = [NSMutableSet new];
 
   for (id obj in retainedObjectsNotWrapped) {
-    [retainedObjects addObject:FBWrapObjectGraphElementWithContext(obj,
-                                                                   _configuration,
-                                                                   @[@"__associated_object"])];
+    FBObjectiveCGraphElement *element = FBWrapObjectGraphElementWithContext(self,
+                                                                            obj,
+                                                                            _configuration,
+                                                                            @[@"__associated_object"]);
+    if (element) {
+      [retainedObjects addObject:element];
+    }
   }
 
   return retainedObjects;
-}
-
-- (NSSet *)filterObjects:(NSArray *)objects
-{
-  NSMutableSet *filtered = [NSMutableSet new];
-
-  for (FBObjectiveCGraphElement *reference in objects) {
-    if (![self _shouldBreakGraphEdgeFromObject:self
-                                      toObject:reference]) {
-      [filtered addObject:reference];
-    }
-  }
-
-  return filtered;
-}
-
-- (BOOL)_shouldBreakGraphEdgeFromObject:(FBObjectiveCGraphElement *)fromObject
-                               toObject:(FBObjectiveCGraphElement *)toObject
-{
-  for (FBGraphEdgeFilterBlock filterBlock in _configuration.filterBlocks) {
-    if (filterBlock(fromObject, toObject) == FBGraphEdgeInvalid) {
-      return YES;
-    }
-  }
-
-  return NO;
 }
 
 - (BOOL)isEqual:(id)object
@@ -123,9 +113,9 @@
 {
   if (_namePath) {
     NSString *namePathStringified = [_namePath componentsJoinedByString:@" -> "];
-    return [NSString stringWithFormat:@"-> %@ -> %@ ", namePathStringified, object_getClass(_object)];
+    return [NSString stringWithFormat:@"-> %@ -> %@ ", namePathStringified, [self classNameOrNull]];
   }
-  return [NSString stringWithFormat:@"-> %@ ", object_getClass(_object)];
+  return [NSString stringWithFormat:@"-> %@ ", [self classNameOrNull]];
 }
 
 - (size_t)objectAddress
@@ -135,9 +125,16 @@
 
 - (NSString *)classNameOrNull
 {
-  NSString *className = NSStringFromClass(object_getClass(_object));
+  NSString *className;
+
+  if ([_object respondsToSelector:@selector(customClassDescription)]) {
+    className = [_object customClassDescription];
+  } else {
+    className = NSStringFromClass([self objectClass]);
+  }
+
   if (!className) {
-    className = @"Null";
+    className = @"(null)";
   }
 
   return className;

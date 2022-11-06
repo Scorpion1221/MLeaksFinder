@@ -3,8 +3,7 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import <Foundation/Foundation.h>
@@ -15,16 +14,13 @@ FOUNDATION_EXPORT double FBRetainCycleDetectorVersionNumber;
 //! Project version string for FBRetainCycleDetector.
 FOUNDATION_EXPORT const unsigned char FBRetainCycleDetectorVersionString[];
 
-#import "FBAssociationManager.h"
-#import "FBObjectiveCBlock.h"
-#import "FBObjectiveCGraphElement.h"
-#import "FBObjectiveCNSCFTimer.h"
-#import "FBObjectiveCObject.h"
-#import "FBObjectGraphConfiguration.h"
-#import "FBParsedStruct.h"
-#import "FBParsedType.h"
-#import "FBStandardGraphEdgeFilters.h"
-#import "FBStructEncodingParser.h"
+#import <FBRetainCycleDetector/FBAssociationManager.h>
+#import <FBRetainCycleDetector/FBObjectiveCBlock.h>
+#import <FBRetainCycleDetector/FBObjectiveCGraphElement.h>
+#import <FBRetainCycleDetector/FBObjectiveCNSCFTimer.h>
+#import <FBRetainCycleDetector/FBObjectiveCObject.h>
+#import <FBRetainCycleDetector/FBObjectGraphConfiguration.h>
+#import <FBRetainCycleDetector/FBStandardGraphEdgeFilters.h>
 
 /**
  Retain Cycle Detector is enabled by default in DEBUG builds, but you can also force it in other builds by

@@ -3,8 +3,7 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import "FBObjectiveCObject.h"
@@ -12,6 +11,7 @@
 #import <objc/runtime.h>
 
 #import "FBClassStrongLayout.h"
+#import "FBObjectGraphConfiguration.h"
 #import "FBObjectReference.h"
 #import "FBRetainCycleUtils.h"
 
@@ -19,18 +19,12 @@
 
 - (NSSet *)allRetainedObjects
 {
-  NSArray *unfiltered = [self _unfilteredRetainedObjects];
-  return [self filterObjects:unfiltered];
-}
-
-- (NSArray *)_unfilteredRetainedObjects
-{
   Class aCls = object_getClass(self.object);
   if (!self.object || !aCls) {
     return nil;
   }
 
-  NSArray *strongIvars = FBGetObjectStrongReferences(self.object);
+  NSArray *strongIvars = FBGetObjectStrongReferences(self.object, self.configuration.layoutCache);
 
   NSMutableArray *retainedObjects = [[[super allRetainedObjects] allObjects] mutableCopy];
 
@@ -39,9 +33,13 @@
 
     if (referencedObject) {
       NSArray<NSString *> *namePath = [ref namePath];
-      [retainedObjects addObject:FBWrapObjectGraphElementWithContext(referencedObject,
-                                                                     self.configuration,
-                                                                     namePath)];
+      FBObjectiveCGraphElement *element = FBWrapObjectGraphElementWithContext(self,
+                                                                              referencedObject,
+                                                                              self.configuration,
+                                                                              namePath);
+      if (element) {
+        [retainedObjects addObject:element];
+      }
     }
   }
 
@@ -51,7 +49,7 @@
      will hold only Objective-C objects. We are not able to check in runtime what callbacks it uses to
      retain/release (if any) and we could easily crash here.
      */
-    return retainedObjects;
+    return [NSSet setWithArray:retainedObjects];
   }
 
   if (class_isMetaClass(aCls)) {
@@ -81,11 +79,18 @@
       @try {
         for (id subobject in self.object) {
           if (retainsKeys) {
-            [temporaryRetainedObjects addObject:FBWrapObjectGraphElement(subobject, self.configuration)];
+            FBObjectiveCGraphElement *element = FBWrapObjectGraphElement(self, subobject, self.configuration);
+            if (element) {
+              [temporaryRetainedObjects addObject:element];
+            }
           }
           if (isKeyValued && retainsValues) {
-            [temporaryRetainedObjects addObject:FBWrapObjectGraphElement([self.object objectForKey:subobject],
-                                                                         self.configuration)];
+            FBObjectiveCGraphElement *element = FBWrapObjectGraphElement(self,
+                                                                         [self.object objectForKey:subobject],
+                                                                         self.configuration);
+            if (element) {
+              [temporaryRetainedObjects addObject:element];
+            }
           }
         }
       }
@@ -100,13 +105,16 @@
     }
   }
 
-  return retainedObjects;
+  return [NSSet setWithArray:retainedObjects];
 }
 
 - (BOOL)_objectRetainsEnumerableValues
 {
   if ([self.object respondsToSelector:@selector(valuePointerFunctions)]) {
     NSPointerFunctions *pointerFunctions = [self.object valuePointerFunctions];
+    if (pointerFunctions.acquireFunction == NULL) {
+      return NO;
+    }
     if (pointerFunctions.usesWeakReadAndWriteBarriers) {
       return NO;
     }
@@ -122,6 +130,9 @@
     // If object shows what pointer functions are used, lets try to determine
     // if it's not retaining objects
     NSPointerFunctions *pointerFunctions = [self.object pointerFunctions];
+    if (pointerFunctions.acquireFunction == NULL) {
+      return NO;
+    }
     if (pointerFunctions.usesWeakReadAndWriteBarriers) {
       // It's weak - we should not touch it
       return NO;
@@ -130,6 +141,9 @@
 
   if ([self.object respondsToSelector:@selector(keyPointerFunctions)]) {
     NSPointerFunctions *pointerFunctions = [self.object keyPointerFunctions];
+    if (pointerFunctions.acquireFunction == NULL) {
+      return NO;
+    }
     if (pointerFunctions.usesWeakReadAndWriteBarriers) {
       return NO;
     }

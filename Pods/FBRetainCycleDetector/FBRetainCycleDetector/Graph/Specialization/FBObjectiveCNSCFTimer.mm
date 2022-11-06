@@ -3,8 +3,7 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import "FBObjectiveCNSCFTimer.h"
@@ -43,10 +42,16 @@ typedef struct {
   if (context.info && context.retain) {
     _FBNSCFTimerInfoStruct infoStruct = *(_FBNSCFTimerInfoStruct *)(context.info);
     if (infoStruct.target) {
-      [retained addObject:FBWrapObjectGraphElementWithContext(infoStruct.target, self.configuration, @[@"target"])];
+      FBObjectiveCGraphElement *element = FBWrapObjectGraphElementWithContext(self, infoStruct.target, self.configuration, @[@"target"]);
+      if (element) {
+        [retained addObject:element];
+      }
     }
     if (infoStruct.userInfo) {
-      [retained addObject:FBWrapObjectGraphElementWithContext(infoStruct.userInfo, self.configuration, @[@"userInfo"])];
+      FBObjectiveCGraphElement *element = FBWrapObjectGraphElementWithContext(self, infoStruct.userInfo, self.configuration, @[@"userInfo"]);
+      if (element) {
+        [retained addObject:element];
+      }
     }
   }
 

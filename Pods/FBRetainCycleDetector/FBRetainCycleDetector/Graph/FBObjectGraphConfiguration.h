@@ -3,8 +3,7 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import <Foundation/Foundation.h>
@@ -16,13 +15,18 @@ typedef NS_ENUM(NSUInteger, FBGraphEdgeType) {
   FBGraphEdgeInvalid,
 };
 
+@protocol FBObjectReference;
+
 /**
  Every filter has to be of type FBGraphEdgeFilterBlock. Filter, given two object graph elements, it should decide,
  whether a reference between them should be filtered out or not.
  @see FBGetStandardGraphEdgeFilters()
  */
 typedef FBGraphEdgeType (^FBGraphEdgeFilterBlock)(FBObjectiveCGraphElement *_Nullable fromObject,
-                                                  FBObjectiveCGraphElement *_Nullable toObject);
+                                                  NSString *_Nullable byIvar,
+                                                  Class _Nullable toObjectOfClass);
+
+typedef FBObjectiveCGraphElement *_Nullable(^FBObjectiveCGraphElementTransformerBlock)(FBObjectiveCGraphElement *_Nonnull fromObject);
 
 /**
  FBObjectGraphConfiguration represents a configuration for object graph walking.
@@ -44,12 +48,38 @@ typedef FBGraphEdgeType (^FBGraphEdgeFilterBlock)(FBObjectiveCGraphElement *_Nul
  */
 @property (nonatomic, readonly, copy, nullable) NSArray<FBGraphEdgeFilterBlock> *filterBlocks;
 
+@property (nonatomic, readonly, copy, nullable) FBObjectiveCGraphElementTransformerBlock transformerBlock;
+
 /**
  Decides if object graph walker should look for retain cycles inside NSTimers.
  */
 @property (nonatomic, readonly) BOOL shouldInspectTimers;
 
+/**
+ Decides if block objects should include their invocation address (the code part of the block) in the report.
+ If set to YES, then it will change from: `MallocBlock` to `<<MallocBlock:0xADDR>>`.
+ You can then symbolicate the address to retrieve a symbol name which will look like:
+ `__FOO_block_invoke` where FOO is replaced by the function creating the block.
+ This will allow easier understanding of the code involved in the cycle when blocks are involved.
+ */
+@property (nonatomic, readonly) BOOL shouldIncludeBlockAddress;
+
+/**
+ Will cache layout
+ */
+@property (nonatomic, readonly, nullable) NSMutableDictionary<Class, NSArray<id<FBObjectReference>> *> *layoutCache;
+@property (nonatomic, readonly) BOOL shouldCacheLayouts;
+
 - (nonnull instancetype)initWithFilterBlocks:(nonnull NSArray<FBGraphEdgeFilterBlock> *)filterBlocks
-                         shouldInspectTimers:(BOOL)shouldInspectTimers NS_DESIGNATED_INITIALIZER;
+                         shouldInspectTimers:(BOOL)shouldInspectTimers
+                         transformerBlock:(nullable FBObjectiveCGraphElementTransformerBlock)transformerBlock
+                         shouldIncludeBlockAddress:(BOOL)shouldIncludeBlockAddress NS_DESIGNATED_INITIALIZER;
+
+- (nonnull instancetype)initWithFilterBlocks:(nonnull NSArray<FBGraphEdgeFilterBlock> *)filterBlocks
+                         shouldInspectTimers:(BOOL)shouldInspectTimers
+                         transformerBlock:(nullable FBObjectiveCGraphElementTransformerBlock)transformerBlock;
+
+- (nonnull instancetype)initWithFilterBlocks:(nonnull NSArray<FBGraphEdgeFilterBlock> *)filterBlocks
+                         shouldInspectTimers:(BOOL)shouldInspectTimers;
 
 @end

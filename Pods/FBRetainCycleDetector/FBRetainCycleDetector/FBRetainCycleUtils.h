@@ -3,8 +3,7 @@
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
  */
 
 #import <Foundation/Foundation.h>
@@ -20,11 +19,13 @@ extern "C" {
  Wrapper functions, for given object they will categorize it and create proper Graph Element subclass instance
  for it.
  */
-FBObjectiveCGraphElement *FBWrapObjectGraphElementWithContext(id object,
-                                                              FBObjectGraphConfiguration *configuration,
-                                                              NSArray<NSString *> *namePath);
-FBObjectiveCGraphElement *FBWrapObjectGraphElement(id object,
-                                                   FBObjectGraphConfiguration *configuration);
+FBObjectiveCGraphElement *_Nullable FBWrapObjectGraphElementWithContext(FBObjectiveCGraphElement *_Nullable sourceElement,
+                                                                        id _Nullable object,
+                                                                        FBObjectGraphConfiguration *_Nullable configuration,
+                                                                        NSArray<NSString *> *_Nullable namePath);
+FBObjectiveCGraphElement *_Nullable FBWrapObjectGraphElement(FBObjectiveCGraphElement *_Nullable sourceElement,
+                                                             id _Nullable object,
+                                                             FBObjectGraphConfiguration *_Nullable configuration);
 
 #ifdef __cplusplus
 }
