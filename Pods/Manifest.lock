@@ -1,16 +1,16 @@
 PODS:
-  - FBRetainCycleDetector (0.1.5)
+  - FBRetainCycleDetector (0.1.6)
 
 DEPENDENCIES:
-  - FBRetainCycleDetector (~> 0.1.5)
+  - FBRetainCycleDetector (~> 0.1.6)
 
 SPEC REPOS:
   "git@codeup.aliyun.com:633b124f0e55ca746597f185/sleep/cocoapods_spec.git":
     - FBRetainCycleDetector
 
 SPEC CHECKSUMS:
-  FBRetainCycleDetector: 5a3ad666a514228f53de67562c2869057901d336
+  FBRetainCycleDetector: f10a2e0c9be6c44cbb416a70cd1b43e2d5e03f13
 
-PODFILE CHECKSUM: 02fdc86286f9e8eb761a3785eb4e5cefaf8f3d17
+PODFILE CHECKSUM: 68dd8b7337a6b0844868e46d69ee4e98d5ea64b5
 
 COCOAPODS: 1.10.2

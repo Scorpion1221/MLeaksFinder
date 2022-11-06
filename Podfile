@@ -8,6 +8,6 @@ target 'MLeaksFinder' do
   # use_frameworks!
 
   # Pods for MLeaksFinder
-  pod 'FBRetainCycleDetector', '~> 0.1.5'
+  pod 'FBRetainCycleDetector', '~> 0.1.6'
 
 end

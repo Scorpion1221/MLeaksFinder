@@ -21,7 +21,7 @@ FBGraphEdgeFilterBlock FBFilterBlockWithObjectIvarRelation(Class aCls, NSString 
 
 FBGraphEdgeFilterBlock FBFilterBlockWithObjectToManyIvarsRelation(Class aCls,
                                                                   NSSet<NSString *> *ivarNames) {
-  return ^(FBObjectiveCGraphElement *fromObject,
+  return [^(FBObjectiveCGraphElement *fromObject,
            NSString *byIvar,
            Class toObjectOfClass){
     if (aCls &&
@@ -32,11 +32,11 @@ FBGraphEdgeFilterBlock FBFilterBlockWithObjectToManyIvarsRelation(Class aCls,
       }
     }
     return FBGraphEdgeValid;
-  };
+  } copy];
 }
 
 FBGraphEdgeFilterBlock FBFilterBlockWithObjectIvarObjectRelation(Class fromClass, NSString *ivarName, Class toClass) {
-  return ^(FBObjectiveCGraphElement *fromObject,
+  return [^(FBObjectiveCGraphElement *fromObject,
            NSString *byIvar,
            Class toObjectOfClass) {
     if (toClass &&
@@ -44,7 +44,7 @@ FBGraphEdgeFilterBlock FBFilterBlockWithObjectIvarObjectRelation(Class fromClass
       return FBFilterBlockWithObjectIvarRelation(fromClass, ivarName)(fromObject, byIvar, toObjectOfClass);
     }
     return FBGraphEdgeValid;
-  };
+  } copy];
 }
 
 NSArray<FBGraphEdgeFilterBlock> *FBGetStandardGraphEdgeFilters() {
