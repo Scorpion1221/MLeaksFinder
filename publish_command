@@ -1,2 +1,2 @@
-pod repo push aliyun-cocoapods_spec ./MLeaksFinder.podspec --verbose --allow-warnings
+pod repo push scorpion-specs ./MLeaksFinder.podspec --verbose --allow-warnings
 
